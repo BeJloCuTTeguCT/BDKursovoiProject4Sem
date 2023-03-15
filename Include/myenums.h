@@ -2,13 +2,10 @@
 #define MYENUMS_H
 #include <QString>
 
-enum ConfigurateFile {
+enum ConfigurateJson {
     Host,
-    NameDB,
-    Login,
-    Password,
     Port,
-    AuthActivate
+    NameDB
 };
 
 enum ColumnName {
@@ -31,6 +28,21 @@ enum SearchType{
     Simple
 };
 
+enum TypeEditRow {
+    EditingRow,
+    AddingRow
+};
+
+enum UserRole {
+    Admin,
+    User,
+    Guest
+};
+
+enum AuthPair {
+    Login,
+    Password
+};
 struct TempTable {
 
     const QString _BookName;

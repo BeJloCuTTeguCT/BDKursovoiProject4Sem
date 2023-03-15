@@ -23,7 +23,6 @@ public:
 
 signals:
     void save_btn_clicked();
-    void cancel_btn_clicked();
 
 private slots:
     void on_save_btn_clicked();

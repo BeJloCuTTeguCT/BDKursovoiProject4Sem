@@ -202,22 +202,6 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="5">
-    <widget class="QLineEdit" name="genre_ln">
-     <property name="minimumSize">
-      <size>
-       <width>140</width>
-       <height>28</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>200</width>
-       <height>30</height>
-      </size>
-     </property>
-    </widget>
-   </item>
    <item row="7" column="5">
     <widget class="QLineEdit" name="pub_date_ln">
      <property name="minimumSize">
@@ -256,12 +240,27 @@
      </property>
     </widget>
    </item>
+   <item row="6" column="5">
+    <widget class="QComboBox" name="genre_cb">
+     <property name="minimumSize">
+      <size>
+       <width>140</width>
+       <height>28</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>200</width>
+       <height>30</height>
+      </size>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>name_ln</tabstop>
   <tabstop>author_ln</tabstop>
-  <tabstop>genre_ln</tabstop>
   <tabstop>pub_date_ln</tabstop>
   <tabstop>count_ln</tabstop>
   <tabstop>save_btn</tabstop>

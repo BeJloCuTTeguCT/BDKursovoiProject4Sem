@@ -13,6 +13,7 @@ public:
 //    static QString getStyleForMenuBar();
 //    static QString getStyleForMenu();
     static QString getStyleForSearchLine();
+    static QString getStyleForSearchComboBox();
     static QString getStyleForComboBox();
 };
 

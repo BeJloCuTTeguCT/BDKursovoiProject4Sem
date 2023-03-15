@@ -5,5 +5,6 @@
         <file alias="expand">expand.ico</file>
         <file alias="wrap">wrap.png</file>
         <file alias="ico_title">rsl-logo.png</file>
+        <file alias="update">update.png</file>
     </qresource>
 </RCC>

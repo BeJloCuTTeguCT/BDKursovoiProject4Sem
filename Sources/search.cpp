@@ -9,14 +9,14 @@ Search::Search(SearchType type_search) :
     if(type_search == SearchType::Advanced) {
         search->setupUi(this);
         search->search_btn->setStyleSheet(StyleSheet::getStyleForSearchBtn());
-        search->author_cb->setStyleSheet(StyleSheet::getStyleForComboBox());
-        search->name_cb->setStyleSheet(StyleSheet::getStyleForComboBox());
-        search->genre_cb->setStyleSheet(StyleSheet::getStyleForComboBox());
+        search->author_cb->setStyleSheet(StyleSheet::getStyleForSearchComboBox());
+        search->name_cb->setStyleSheet(StyleSheet::getStyleForSearchComboBox());
+        search->genre_cb->setStyleSheet(StyleSheet::getStyleForSearchComboBox());
     }
     if(type_search == SearchType::Simple) {
         simple_search->setupUi(this);
         simple_search->simple_search_btn->setStyleSheet(StyleSheet::getStyleForSearchBtn());
-        simple_search->name_cb->setStyleSheet(StyleSheet::getStyleForComboBox());
+        simple_search->name_cb->setStyleSheet(StyleSheet::getStyleForSearchComboBox());
     }
     this->setStyleSheet(StyleSheet::getStyleForSearchLine()); //поля ввода серым цветом как кнопка отмены
 }

@@ -15,7 +15,7 @@
 #include "search.h"
 #include "setconnectdb.h"
 #include "editrow.h"
-
+#include "filerw.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -33,33 +33,50 @@ public:
 
 private:
     Ui::Widget *ui;
+
+    FileRW *_FJson;
+    UserRole _userRole;
+
     QMenuBar *_menubar;
-    QMenu *_menu;
+    QMenu *_menuSet;
+    QMenu *_menuAdmin;
+    QMenu *_menuPersAcc;
     QAction *_authMN;
+    QAction *_editMod;
+
     Authorization *auth;
-    QStringList configure_DB;
     bool _succes_auth;
+
+    QSqlTableModel *_model;
+    QSqlDatabase db;
+    QSqlTableModel *_model_genre;
+
     Search *simple_search;
     Search *search;
-    QSqlDatabase db;
-    QSqlTableModel *_model;
-    QMessageBox *_set_auth_msg;
-    SetConnectDB *_setConDb;
     EditRow *_editRow;
-    void authorization();
-    void load_table(const QStringList &configure_DB);
+    SetConnectDB *_setConDb;
+    QMessageBox *_set_auth_msg;
 
-
+    void load_table();
 
 public slots:
     void succes_auth();
-    void set_connect();
     void set_connect_apply();
-    void set_connect_cancel();
-    void set_auth_message();
     void set_auth(QAbstractButton *btn);
     void querry_simple_search(Accuracy accuracy, QString name);
     void querry_search();
+
+    //connectors slots
+    void authorization();
+    void update_table();
+    void on_clicked_menu_takenBook();
+    void on_clicked_menu_returnBook();
+    void on_clicked_menu_personSetting();
+    void on_clicked_menu_createGenre();
+    void on_clicked_menu_removeRow();
+    void removeGenre();
+    void set_connect();
+    void set_auth_message();
     void addRow();
 
 private slots:

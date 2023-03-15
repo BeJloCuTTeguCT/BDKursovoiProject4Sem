@@ -13,9 +13,9 @@ SetConnectDB::SetConnectDB(QWidget *parent) :
 }
 
 SetConnectDB::SetConnectDB(QList<QString> present, QWidget *parent) :
-QDialog(parent), _port(present[ConfigurateFile::Port]), _host(present[ConfigurateFile::Host]),
-  _DB_name(present[ConfigurateFile::NameDB]), _login(present[ConfigurateFile::Login]),
-  _passwd(present[ConfigurateFile::Password]), ui(new Ui::SetConnectDB)
+    QDialog(parent), _port(present[ConfigurateJson::Port]), _host(present[ConfigurateJson::Host]),
+  _DB_name(present[ConfigurateJson::NameDB]), _login(present[AuthPair::Login + 3]),
+  _passwd(present[AuthPair::Password + 3]), ui(new Ui::SetConnectDB)
 {
     ui->setupUi(this);
     ui->DBname_ln->setText(_DB_name);
@@ -65,12 +65,13 @@ void SetConnectDB::on_save_btn_clicked()
     this->_DB_name = this->ui->DBname_ln->text();
     this->_login = this->ui->login_ln->text();
     this->_passwd = this->ui->passwd_ln->text();
+    this->close();
     emit this->save_btn_clicked();
 }
 
 
 void SetConnectDB::on_cancel_btn_clicked()
 {
-    emit cancel_btn_clicked();
+    this->close();
 }
 

@@ -16,10 +16,11 @@ class EditRow : public QDialog
     Q_OBJECT
 
 public:
-    explicit EditRow(QWidget *parent = nullptr);
+    explicit EditRow(TypeEditRow type = TypeEditRow::EditingRow, QWidget *parent = nullptr);
     void setModel(QAbstractItemModel *model);
     void setSave(const int bookID, const int genreID, QSqlDatabase *db);
     void setCurentModelIndex(const QModelIndex &index);
+    void setGenreList(QAbstractItemModel *model);
     ~EditRow();
 
 
@@ -35,6 +36,7 @@ private:
     QSqlDatabase *_db;
     QDataWidgetMapper *_mapper;
     TempTable *_table;
+    TypeEditRow _type;
     Ui::EditRow *ui;
 };
 

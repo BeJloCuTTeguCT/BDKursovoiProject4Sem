@@ -5,7 +5,9 @@
 
 namespace Ui {
 class Authorization;
+class Registration;
 }
+class Registration;
 
 class Authorization : public QDialog
 {
@@ -21,11 +23,31 @@ signals:
 
 private slots:
     void on_login_pb_clicked();
+    void on_registration_btn_clicked();
 
 private:
     QString _login;
     QString _password;
     Ui::Authorization *ui;
+    Registration *_registr;
+};
+
+class Registration : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit Registration(QWidget *parent = nullptr);
+    ~Registration();
+
+signals:
+    void RegistrationEnd();
+
+private slots:
+    void on_save_btn_clicked();
+
+private:
+    Ui::Registration *ui;
 };
 
 #endif // AUTHORIZATION_H

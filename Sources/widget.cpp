@@ -1,6 +1,7 @@
 #include "widget.h"
 #include "ui_widget.h"
 #include "mfiltermodel.h"
+#include <QPixmap>
 #include <QMessageBox>
 #include <QSqlDriver>
 #include <QHeaderView>
@@ -10,10 +11,13 @@
 #include <QDebug>
 
 Widget::Widget(QWidget *parent)
-    : QWidget(parent), ui(new Ui::Widget), _menubar(new QMenuBar), auth(nullptr),
+    : QWidget(parent), ui(new Ui::Widget), _menubar(new QMenuBar(this)), auth(nullptr),
       _succes_auth(false), simple_search(new Search()), search(new Search(SearchType::Advanced)),
-      _editRow(new EditRow(this))
+      _editRow(new EditRow(TypeEditRow::EditingRow, this))
 {
+    _FJson = new FileRW("..\\LibIS\\Configure.dat", this);
+    _userRole = UserRole::Guest;
+
     ui->setupUi(this);
     QVBoxLayout *tab_lay = new QVBoxLayout();
     QVBoxLayout *tab2_lay = new QVBoxLayout();
@@ -25,14 +29,44 @@ Widget::Widget(QWidget *parent)
     connect(simple_search, &Search::init_simple_search, this, &Widget::querry_simple_search);
 
     ui->verticalLayout->setMenuBar(_menubar);
-    _menu = new QMenu("&Настройки", _menubar);
-    _menu->setEnabled(false);
-    QAction *connectBD = _menu->addAction("&Подключение к БД");
-    QAction *authSetting = _menu->addAction("&Настройка авторизации");
-    QAction *addRow = _menu->addAction("&Добавить книгу");
-    _menubar->addMenu(_menu);
-    _authMN =_menubar->addAction("Авторизация");
+    _authMN = _menubar->addAction("Авторизация");
+
+    QAction *updTable = (new QMenu(this))->addAction("");
+    updTable->setIconVisibleInMenu(true);
+    updTable->setIcon(QPixmap(":/icons/update"));
+    updTable->setShortcut(Qt::Key_F5);
+    _menubar->addAction(updTable);
+
+    _menuPersAcc = new QMenu("&Личный кабинет");
+    QAction *takenBook = _menuPersAcc->addAction("&Взятые книги");
+    QAction *returnBook = _menuPersAcc->addAction("&Прочитанные книги");
+    QAction *PersSet = _menuPersAcc->addAction("&Настройки аккаунта");
+    _menubar->addMenu(_menuPersAcc);
+
+    _menuAdmin = new QMenu("&Редактирование");
+    _editMod = _menuAdmin->addAction("&Режим редактирования");
+    _editMod->setCheckable(true);
+    _editMod->setChecked(false);
+    QAction *addRow = _menuAdmin->addAction("&Добавить книгу");
+    QAction *createGenre = _menuAdmin->addAction("&Добавить жанр");
+    QAction *rmRow = _menuAdmin->addAction("&Удалить книгу");
+    QAction *rmGenre = _menuAdmin->addAction("&Удалить &жанр");
+    _menubar->addMenu(_menuAdmin);
+
+    _menuSet = new QMenu("&Настройки", _menubar);
+    _menuSet->setEnabled(false);
+    QAction *connectBD = _menuSet->addAction("&Подключение к БД");
+    QAction *authSetting = _menuSet->addAction("&Настройка авторизации");
+    _menubar->addMenu(_menuSet);
+
     connect(_authMN, &QAction::triggered, this, &Widget::authorization);
+    connect(updTable, &QAction::triggered, this, &Widget::update_table);
+    connect(takenBook, &QAction::triggered, this, &Widget::on_clicked_menu_takenBook);
+    connect(returnBook, &QAction::triggered, this, &Widget::on_clicked_menu_returnBook);
+    connect(PersSet, &QAction::triggered, this, &Widget::on_clicked_menu_personSetting);
+    connect(createGenre, &QAction::triggered, this, &Widget::on_clicked_menu_createGenre);
+    connect(rmRow, &QAction::triggered, this, &Widget::on_clicked_menu_removeRow);
+    connect(rmGenre, &QAction::triggered, this, &Widget::removeGenre);
     connect(connectBD, &QAction::triggered, this, &Widget::set_connect);
     connect(authSetting, &QAction::triggered, this, &Widget::set_auth_message);
     connect(addRow, &QAction::triggered, this, &Widget::addRow);
@@ -47,27 +81,11 @@ Widget::~Widget()
 
 void Widget::authorization()
 {
-    QFile file("..\\LibIS\\Setting.cfg");
-    if(!file.open(QIODeviceBase::ReadOnly) || file.readAll().isEmpty()){
-        QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Critical, "Ошибка конфигурации",
-                "Ошибка при открытии конфигурационного\nфайла с параметрами соединения с БД",
-                QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-        msg->show();
-        return;
-    }
-    file.seek(0);
-    configure_DB.append(QString(file.readLine()));
-    configure_DB.append(QString(file.readLine()));
-    configure_DB.append(QString(file.readLine()));
-    configure_DB.append(QString(file.readLine()));
-    configure_DB.append(QString(file.readLine()));
-    configure_DB.append(QString(file.readLine()));
-    file.close();
-    if(configure_DB.value(ConfigurateFile::AuthActivate) == "true") {
+    if(_FJson->getBootAuthState() == "true") {
         auth = new Authorization(this);
         auth->open();
-        auth->authorization(configure_DB.value(ConfigurateFile::Login).chopped(2),
-                            configure_DB.value(ConfigurateFile::Password).chopped(2));
+        QStringList tmp(_FJson->getAuthPair(UserRole::Admin));
+        auth->authorization(tmp.value(AuthPair::Login), tmp.value(AuthPair::Password));
         connect(auth, &Authorization::succes_authoriz, this, &Widget::succes_auth);
     }
     else
@@ -81,50 +99,37 @@ void Widget::succes_auth()
     if(_authMN != nullptr)
         _menubar->removeAction(_authMN);
     _succes_auth = true;
-    _menu->setEnabled(true);
-    this->load_table(configure_DB);
+    _menuSet->setEnabled(true);
+    this->load_table();
 }
 
 void Widget::set_connect()
 {
-    this->_setConDb = new SetConnectDB(configure_DB,this);
+    QStringList mes(_FJson->getConfigDB());
+    mes += _FJson->getAuthPair(_userRole);
+    this->_setConDb = new SetConnectDB(mes, this);
     _setConDb->open();
     connect(_setConDb, &SetConnectDB::save_btn_clicked, this, &Widget::set_connect_apply);
-    connect(_setConDb, &SetConnectDB::cancel_btn_clicked, this, &Widget::set_connect_cancel);
 }
 
 void Widget::set_connect_apply()
 {
-    configure_DB[ConfigurateFile::Host] = _setConDb->get_host() + "\r\n";
-    configure_DB[ConfigurateFile::NameDB] = _setConDb->get_DB_name() + "\r\n";
-    configure_DB[ConfigurateFile::Login] = _setConDb->get_login() + "\r\n";
-    configure_DB[ConfigurateFile::Password] = _setConDb->get_passwd() + "\r\n";
-    configure_DB[ConfigurateFile::Port] = _setConDb->get_port() + "\r\n";
-    delete _setConDb;
-    QFile file("..\\LibIS\\Setting.cfg");
-    if(!file.open(QIODeviceBase::WriteOnly | QIODeviceBase::Truncate)){
-        QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Critical, "Ошибка конфигурации",
-                "Ошибка при открытии конфигурационного\nфайла с параметрами соединения с БД",
-                QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-        msg->show();
-        return;
-    }
-    QString str;
-    foreach(QString temp, configure_DB)
-        str += temp;
-    file.write(str.toUtf8());
-    file.close();
-}
-
-void Widget::set_connect_cancel()
-{
-    delete this->_setConDb;
+    QStringList configDB;
+    configDB.append(_setConDb->get_host());
+    configDB.append(_setConDb->get_port());
+    configDB.append(_setConDb->get_DB_name());
+    QStringList authPair;
+    authPair.insert(AuthPair::Login, _setConDb->get_login());
+    authPair.insert(AuthPair::Password, _setConDb->get_passwd());
+    _FJson->setAuthPair(_userRole, authPair);
+    _FJson->setConfigDB(configDB);
+    _FJson->writeFile();
 }
 
 void Widget::set_auth_message()
 {
     QString post;
-    if(configure_DB.value(ConfigurateFile::AuthActivate) == "true")
+    if(_FJson->getBootAuthState() == "true")
         post = "Сейчас авторизация при загрузке программы\n"
                "включена. Вы уверены, что хотите её отключить?";
     else
@@ -141,40 +146,26 @@ void Widget::set_auth(QAbstractButton *btn)
     QMessageBox::StandardButton button = _set_auth_msg->standardButton(btn);
     if(button == QMessageBox::StandardButton::Apply)
     {
-        QFile file("..\\LibIS\\Setting.cfg");
-        if(!file.open(QIODeviceBase::WriteOnly | QIODeviceBase::Truncate)){
-            QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Critical, "Ошибка конфигурации",
-                    "Ошибка при открытии конфигурационного\nфайла с параметрами соединения с БД",
-                    QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-            msg->show();
-            return;
-        }
-        QString str;
-        foreach(QString temp, configure_DB)
-            str += temp;
-        if(configure_DB.value(ConfigurateFile::AuthActivate) == "true"){
-            str = str.chopped(4);
-            str += "false";
-            configure_DB[ConfigurateFile::AuthActivate] = "fasle";
-        }
-        else {
-            str = str.chopped(5);
-            str += "true";
-            configure_DB[ConfigurateFile::AuthActivate] = "true";
-        }
-        file.write(str.toUtf8());
-        file.close();
+        if(_FJson->getBootAuthState() == "true")
+            _FJson->setBootAuthState("false");
+        else
+            _FJson->setBootAuthState("true");
+        _FJson->writeFile();
     }
 }
 
-void Widget::load_table(const QStringList &configure_DB)
+void Widget::load_table()
 {
+    this->setCursor(Qt::BusyCursor);
+    QStringList config = _FJson->getConfigDB();
+    QStringList authPair = _FJson->getAuthPair(_userRole);
     db = QSqlDatabase::addDatabase("QPSQL");
-    db.setHostName(configure_DB.value(ConfigurateFile::Host).chopped(2));
-    db.setDatabaseName(configure_DB.value(ConfigurateFile::NameDB).chopped(2));
-    db.setUserName(configure_DB.value(ConfigurateFile::Login).chopped(2));
-    db.setPassword(configure_DB.value(ConfigurateFile::Password).chopped(2));
-    db.setPort(configure_DB.value(ConfigurateFile::Port).chopped(2).toInt());
+    db.setHostName(config.value(ConfigurateJson::Host));
+    db.setPort(config.value(ConfigurateJson::Port).toInt());
+    db.setDatabaseName(config.value(ConfigurateJson::NameDB));
+    db.setUserName(authPair.value(AuthPair::Login));
+    db.setPassword(authPair.value(AuthPair::Password));
+
     if (!db.open()) {
         QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Critical, "Ошибка подключения", db.lastError().databaseText(),
                                         QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
@@ -198,10 +189,48 @@ void Widget::load_table(const QStringList &configure_DB)
     ui->tableView->resizeColumnsToContents();
     ui->tableView->setSortingEnabled(true);
 
-    QSqlTableModel *model_cb = new QSqlTableModel(this, db);
-    model_cb->setTable("genre");
-    model_cb->select();
-    search->set_genre_list(model_cb);
+    _model_genre = new QSqlTableModel(this, db);
+    _model_genre->setTable("genre");
+    _model_genre->select();
+    search->set_genre_list(_model_genre);
+    this->setCursor(Qt::ArrowCursor);
+}
+
+void Widget::update_table()
+{
+    this->setCursor(Qt::BusyCursor);
+    _model->select();
+    this->setCursor(Qt::ArrowCursor);
+}
+
+void Widget::on_clicked_menu_takenBook()
+{
+
+}
+
+void Widget::on_clicked_menu_returnBook()
+{
+
+}
+
+void Widget::on_clicked_menu_personSetting()
+{
+
+}
+
+void Widget::on_clicked_menu_createGenre()
+{
+
+}
+
+void Widget::on_clicked_menu_removeRow()
+{
+
+}
+
+void Widget::removeGenre()
+{
+
 }
 
 void Widget::querry_simple_search(Accuracy accuracy, QString name)
@@ -245,6 +274,9 @@ void Widget::addRow()
 
 void Widget::on_tableView_doubleClicked(const QModelIndex &index)
 {
+    if(!_editMod->isChecked())
+        return; //обработка режима редактирования
+
     if (dynamic_cast<QSqlTableModel*>(ui->tableView->model()) != NULL) {
         QSqlTableModel *temp = dynamic_cast<QSqlTableModel*>(ui->tableView->model());
         _editRow->setSave(temp->record(index.row()).value(ColumnName::BookID).toInt(),
@@ -264,6 +296,7 @@ void Widget::on_tableView_doubleClicked(const QModelIndex &index)
             }
     _editRow->setModel(ui->tableView->model());
     _editRow->setCurentModelIndex(index);
+    _editRow->setGenreList(_model_genre);
     _editRow->show();
 }
 

@@ -56,11 +56,34 @@ QString StyleSheet::getStyleForSearchLine()
            "}";
 }
 
-QString StyleSheet::getStyleForComboBox()
+QString StyleSheet::getStyleForSearchComboBox()
 {
     return "QComboBox {"
            "border-radius: 10px;"
             "background: rgb(225, 225, 225);"
+            "padding-left: 5px;"
+        "}"
+
+        "QComboBox::drop-down {"
+        "subcontrol-origin: padding;"
+            "subcontrol-position: top right;"
+           "width: 20px;"
+            "border-top-right-radius: 3px;"
+           "border-bottom-right-radius: 3px;"
+        "}"
+
+        "QComboBox::down-arrow {"
+            "image: url(:/icons/combobox);"
+            "width: 16px;"
+            "height: 16px;"
+       "}";
+}
+
+QString StyleSheet::getStyleForComboBox()
+{
+    return "QComboBox {"
+           "border-radius: 10px;"
+            "background: rgb(255, 255, 255);"
             "padding-left: 5px;"
         "}"
 
