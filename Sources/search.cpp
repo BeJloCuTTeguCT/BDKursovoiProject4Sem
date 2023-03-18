@@ -1,4 +1,4 @@
-#include "search.h"
+ #include "search.h"
 #include "ui_search.h"
 #include "ui_simple_search.h"
 #include "stylesheet.h"

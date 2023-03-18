@@ -1,4 +1,4 @@
-#ifndef STYLESHEET_H
+ #ifndef STYLESHEET_H
 #define STYLESHEET_H
 
 #include <QString>
@@ -11,7 +11,7 @@ public:
     static QString getStyleForSearchBtn();
     static QString getStyleForEditLine();
 //    static QString getStyleForMenuBar();
-//    static QString getStyleForMenu();
+    static QString getStyleForErrorLineEdit();
     static QString getStyleForSearchLine();
     static QString getStyleForSearchComboBox();
     static QString getStyleForComboBox();

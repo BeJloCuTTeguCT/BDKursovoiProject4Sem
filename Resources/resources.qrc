@@ -7,4 +7,5 @@
         <file alias="ico_title">rsl-logo.png</file>
         <file alias="update">update.png</file>
     </qresource>
+    <qresource prefix="/a"/>
 </RCC>

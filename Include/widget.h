@@ -9,6 +9,7 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QSqlTableModel>
+#include <qsortfilterproxymodel.h>
 #include <QSqlError>
 #include <QMessageBox>
 #include "authorization.h"
@@ -27,40 +28,46 @@ class Widget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit Widget(QWidget *parent = nullptr);
-    ~Widget();
-
-private:
     Ui::Widget *ui;
 
     FileRW *_FJson;
     UserRole _userRole;
+    QString _userLogin;
 
     QMenuBar *_menubar;
     QMenu *_menuSet;
     QMenu *_menuAdmin;
     QMenu *_menuPersAcc;
-    QAction *_authMN;
+    QAction * _authMN;
     QAction *_editMod;
+    QAction *_takenBook;
+    QAction *_returnBook;
 
     Authorization *auth;
     bool _succes_auth;
 
-    QSqlTableModel *_model;
     QSqlDatabase db;
+    QSqlTableModel *_model;
+    QSortFilterProxyModel *_model_sort;
     QSqlTableModel *_model_genre;
 
     Search *simple_search;
     Search *search;
+
     EditRow *_editRow;
+    EditGenre *_editGenre;
+
     SetConnectDB *_setConDb;
     QMessageBox *_set_auth_msg;
 
     void load_table();
 
+public:
+    explicit Widget(QWidget *parent = nullptr);
+    ~Widget();
+
 public slots:
-    void succes_auth();
+    void succes_auth(UserRole role, QString login);
     void set_connect_apply();
     void set_auth(QAbstractButton *btn);
     void querry_simple_search(Accuracy accuracy, QString name);

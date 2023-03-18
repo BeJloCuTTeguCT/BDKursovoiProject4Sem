@@ -12,8 +12,7 @@
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent), ui(new Ui::Widget), _menubar(new QMenuBar(this)), auth(nullptr),
-      _succes_auth(false), simple_search(new Search()), search(new Search(SearchType::Advanced)),
-      _editRow(new EditRow(TypeEditRow::EditingRow, this))
+      _succes_auth(false), simple_search(new Search()), search(new Search(SearchType::Advanced))
 {
     _FJson = new FileRW("..\\LibIS\\Configure.dat", this);
     _userRole = UserRole::Guest;
@@ -38,8 +37,10 @@ Widget::Widget(QWidget *parent)
     _menubar->addAction(updTable);
 
     _menuPersAcc = new QMenu("&Личный кабинет");
-    QAction *takenBook = _menuPersAcc->addAction("&Взятые книги");
-    QAction *returnBook = _menuPersAcc->addAction("&Прочитанные книги");
+    _takenBook = _menuPersAcc->addAction("&Взятые книги");
+    _takenBook->setCheckable(true);
+    _returnBook = _menuPersAcc->addAction("&Прочитанные книги");
+    _returnBook->setCheckable(true);
     QAction *PersSet = _menuPersAcc->addAction("&Настройки аккаунта");
     _menubar->addMenu(_menuPersAcc);
 
@@ -47,9 +48,10 @@ Widget::Widget(QWidget *parent)
     _editMod = _menuAdmin->addAction("&Режим редактирования");
     _editMod->setCheckable(true);
     _editMod->setChecked(false);
-    QAction *addRow = _menuAdmin->addAction("&Добавить книгу");
-    QAction *createGenre = _menuAdmin->addAction("&Добавить жанр");
-    QAction *rmRow = _menuAdmin->addAction("&Удалить книгу");
+    _editMod->setShortcut(Qt::CTRL | Qt::Key_E);
+    QAction *addRow = _menuAdmin->addAction("&Добавить &книгу");
+    QAction *createGenre = _menuAdmin->addAction("&Добавить &жанр");
+    QAction *rmRow = _menuAdmin->addAction("&Удалить &книгу");
     QAction *rmGenre = _menuAdmin->addAction("&Удалить &жанр");
     _menubar->addMenu(_menuAdmin);
 
@@ -61,8 +63,8 @@ Widget::Widget(QWidget *parent)
 
     connect(_authMN, &QAction::triggered, this, &Widget::authorization);
     connect(updTable, &QAction::triggered, this, &Widget::update_table);
-    connect(takenBook, &QAction::triggered, this, &Widget::on_clicked_menu_takenBook);
-    connect(returnBook, &QAction::triggered, this, &Widget::on_clicked_menu_returnBook);
+    connect(_takenBook, &QAction::triggered, this, &Widget::on_clicked_menu_takenBook);
+    connect(_returnBook, &QAction::triggered, this, &Widget::on_clicked_menu_returnBook);
     connect(PersSet, &QAction::triggered, this, &Widget::on_clicked_menu_personSetting);
     connect(createGenre, &QAction::triggered, this, &Widget::on_clicked_menu_createGenre);
     connect(rmRow, &QAction::triggered, this, &Widget::on_clicked_menu_removeRow);
@@ -84,22 +86,28 @@ void Widget::authorization()
     if(_FJson->getBootAuthState() == "true") {
         auth = new Authorization(this);
         auth->open();
-        QStringList tmp(_FJson->getAuthPair(UserRole::Admin));
+        QStringList tmp(_FJson->getAuthPair(UserRole::Guest));
+        auth->setConfigDB(_FJson->getConfigDB());
         auth->authorization(tmp.value(AuthPair::Login), tmp.value(AuthPair::Password));
         connect(auth, &Authorization::succes_authoriz, this, &Widget::succes_auth);
     }
-    else
-        succes_auth();
+    else {
+        succes_auth(UserRole::Admin, "");
+        _menuPersAcc->setEnabled(false);
+    }
 }
 
-void Widget::succes_auth()
+void Widget::succes_auth(UserRole role, QString login)
 {
+    _userRole = role;
+    _userLogin = login;
     if(auth != nullptr)
         delete auth;
     if(_authMN != nullptr)
         _menubar->removeAction(_authMN);
     _succes_auth = true;
     _menuSet->setEnabled(true);
+    _menuPersAcc->setEnabled(true);
     this->load_table();
 }
 
@@ -128,14 +136,14 @@ void Widget::set_connect_apply()
 
 void Widget::set_auth_message()
 {
-    QString post;
+    QString mes;
     if(_FJson->getBootAuthState() == "true")
-        post = "Сейчас авторизация при загрузке программы\n"
+        mes = "Сейчас авторизация при загрузке программы\n"
                "включена. Вы уверены, что хотите её отключить?";
     else
-        post = "Сейчас авторизация при загрузке программы\n"
+        mes = "Сейчас авторизация при загрузке программы\n"
                "выключена. Вы уверены, что хотите её включить?";
-    _set_auth_msg = new QMessageBox(QMessageBox::Icon::Question, "Настройка авторизации", post,
+    _set_auth_msg = new QMessageBox(QMessageBox::Icon::Question, "Настройка авторизации", mes,
             QMessageBox::StandardButton::Apply | QMessageBox::StandardButton::Cancel, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     _set_auth_msg->open();
     connect(_set_auth_msg, &QMessageBox::buttonClicked, this, &Widget::set_auth);
@@ -181,9 +189,9 @@ void Widget::load_table()
     _model->setHeaderData(ColumnName::GenreName, Qt::Horizontal, "Жанр");
     _model->setHeaderData(ColumnName::BookPublishDate, Qt::Horizontal, "Год\nиздания");
     _model->setHeaderData(ColumnName::BookCount, Qt::Horizontal, "Количество\nкниг");
-    QSortFilterProxyModel *model = new QSortFilterProxyModel(this);
-    model->setSourceModel(_model);
-    ui->tableView->setModel(model);
+    _model_sort = new QSortFilterProxyModel(this);
+    _model_sort->setSourceModel(_model);
+    ui->tableView->setModel(_model_sort);
     ui->tableView->setColumnHidden(ColumnName::BookID, true);
     ui->tableView->setColumnHidden(ColumnName::GenreID, true);
     ui->tableView->resizeColumnsToContents();
@@ -192,6 +200,7 @@ void Widget::load_table()
     _model_genre = new QSqlTableModel(this, db);
     _model_genre->setTable("genre");
     _model_genre->select();
+    _model_genre->setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
     search->set_genre_list(_model_genre);
     this->setCursor(Qt::ArrowCursor);
 }
@@ -205,12 +214,44 @@ void Widget::update_table()
 
 void Widget::on_clicked_menu_takenBook()
 {
-
+    if (!_takenBook->isChecked()) {
+        ui->tableView->setModel(_model_sort);
+        return;
+    }
+    QString query = QString("select * from print_taken_books_by_user_login('%1')").arg(_userLogin);
+    QSqlQueryModel *takeBookModel = new QSqlQueryModel(this);
+    takeBookModel->setQuery(query, db);
+    takeBookModel->setHeaderData(0, Qt::Horizontal, "Название");
+    takeBookModel->setHeaderData(1, Qt::Horizontal, "Автор");
+    takeBookModel->setHeaderData(2, Qt::Horizontal, "Жанр");
+    takeBookModel->setHeaderData(3, Qt::Horizontal, "Дата взятия");
+    QSortFilterProxyModel *model = new QSortFilterProxyModel(this);
+    model->setSourceModel(takeBookModel);
+    ui->tableView->setModel(model);
+    ui->tableView->resizeColumnsToContents();
 }
 
 void Widget::on_clicked_menu_returnBook()
 {
+    if (_returnBook->isChecked()) {
+        ui->tableView->setModel(_model_sort);
+        return;
+    }
+    if (_takenBook->isChecked())
+        _takenBook->setChecked(false);
 
+    QString query = QString("select * from print_retuns_books_by_user_login('%1')").arg(_userLogin);
+    QSqlQueryModel *returnBookModel = new QSqlQueryModel(this);
+    returnBookModel->setQuery(query, db);
+    returnBookModel->setHeaderData(0, Qt::Horizontal, "Название");
+    returnBookModel->setHeaderData(1, Qt::Horizontal, "Автор");
+    returnBookModel->setHeaderData(2, Qt::Horizontal, "Жанр");
+    returnBookModel->setHeaderData(3, Qt::Horizontal, "Дата взятия");
+    returnBookModel->setHeaderData(3, Qt::Horizontal, "Дата возвращения");
+    QSortFilterProxyModel *model = new QSortFilterProxyModel(this);
+    model->setSourceModel(returnBookModel);
+    ui->tableView->setModel(model);
+    ui->tableView->resizeColumnsToContents();
 }
 
 void Widget::on_clicked_menu_personSetting()
@@ -220,17 +261,33 @@ void Widget::on_clicked_menu_personSetting()
 
 void Widget::on_clicked_menu_createGenre()
 {
+    if (_userRole != Admin)
+        return;
+
+    _editGenre = new EditGenre(TypeEditGenre::CreateGenre, this);
+    _editGenre->setGenreList(_model_genre);
+    _editGenre->show();
 
 }
 
 void Widget::on_clicked_menu_removeRow()
 {
+    if(_takenBook->isChecked() || _returnBook->isChecked())
+        return; //обработка просмотра других табилиц
 
+    _editRow = new EditRow(TypeEditRow::RemovindRow, this);
+    _editRow->setModel(ui->tableView->model());
+    _editRow->setSave(&db);
+    _editRow->show();
 }
 
 void Widget::removeGenre()
 {
-
+    if (_userRole != Admin)
+        return;
+    _editGenre = new EditGenre(TypeEditGenre::RemoveGenre, this);
+    _editGenre->setGenreList(_model_genre);
+    _editGenre->show();
 }
 
 void Widget::querry_simple_search(Accuracy accuracy, QString name)
@@ -269,30 +326,35 @@ void Widget::querry_search()
 
 void Widget::addRow()
 {
-    return;
+    if(_takenBook->isChecked() || _returnBook->isChecked())
+        return; //обработка просмотра других табилиц
+
+    _editRow = new EditRow(TypeEditRow::AddingRow, this);
+    _editRow->setModel(ui->tableView->model());
+    _editRow->setSave(&db);
+    _editRow->setGenreList(_model_genre);
+    _editRow->show();
 }
 
 void Widget::on_tableView_doubleClicked(const QModelIndex &index)
 {
-    if(!_editMod->isChecked())
-        return; //обработка режима редактирования
+    if(!_editMod->isChecked() || _takenBook->isChecked() || _returnBook->isChecked())
+        return; //обработка режима редактирования и просмотра других табилиц
 
+    _editRow = new EditRow(TypeEditRow::EditingRow, this);
     if (dynamic_cast<QSqlTableModel*>(ui->tableView->model()) != NULL) {
         QSqlTableModel *temp = dynamic_cast<QSqlTableModel*>(ui->tableView->model());
-        _editRow->setSave(temp->record(index.row()).value(ColumnName::BookID).toInt(),
-                         temp->record(index.row()).value(ColumnName::GenreID).toInt(), &db);
+        _editRow->setSave(&db, temp->record(index.row()).value(ColumnName::BookID).toString());
     }
     else
         if (dynamic_cast<MFilterModel*>(ui->tableView->model()) != NULL) {
             MFilterModel *temp = dynamic_cast<MFilterModel*>(ui->tableView->model());
-            _editRow->setSave(_model->record(temp->mapToSource(index).row()).value(ColumnName::BookID).toInt(),
-                             _model->record(temp->mapToSource(index).row()).value(ColumnName::GenreID).toInt(), &db);
+            _editRow->setSave(&db, _model->record(temp->mapToSource(index).row()).value(ColumnName::BookID).toString());
         }
         else
             if (dynamic_cast<QSortFilterProxyModel*>(ui->tableView->model()) != NULL) {
                 QSortFilterProxyModel *temp = dynamic_cast<QSortFilterProxyModel*>(ui->tableView->model());
-                _editRow->setSave(_model->record(temp->mapToSource(index).row()).value(ColumnName::BookID).toInt(),
-                                 _model->record(temp->mapToSource(index).row()).value(ColumnName::GenreID).toInt(), &db);
+                _editRow->setSave(&db, _model->record(temp->mapToSource(index).row()).value(ColumnName::BookID).toString());
             }
     _editRow->setModel(ui->tableView->model());
     _editRow->setCurentModelIndex(index);

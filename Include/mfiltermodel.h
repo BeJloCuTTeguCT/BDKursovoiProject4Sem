@@ -1,4 +1,4 @@
-#ifndef MFILTERMODEL_H
+ #ifndef MFILTERMODEL_H
 #define MFILTERMODEL_H
 
 #include <QSortFilterProxyModel>

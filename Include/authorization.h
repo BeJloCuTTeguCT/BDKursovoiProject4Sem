@@ -1,7 +1,9 @@
 #ifndef AUTHORIZATION_H
 #define AUTHORIZATION_H
 
+#include <QSqlDatabase>
 #include <QDialog>
+#include "myenums.h"
 
 namespace Ui {
 class Authorization;
@@ -12,42 +14,46 @@ class Registration;
 class Authorization : public QDialog
 {
     Q_OBJECT
+    QSqlDatabase _db;
+    Ui::Authorization *ui;
+    Registration *_registr;
+    void errorMes();
 
 public:
     explicit Authorization(QWidget *parent = nullptr);
     ~Authorization();
     void authorization(const QString &login, const QString &password);
+    void setConfigDB(const QStringList &config);
+
 
 signals:
-    void succes_authoriz();
+    void succes_authoriz(UserRole role, QString login);
 
 private slots:
     void on_login_pb_clicked();
     void on_registration_btn_clicked();
-
-private:
-    QString _login;
-    QString _password;
-    Ui::Authorization *ui;
-    Registration *_registr;
+    void pullFields(QString login, QString passwd);
 };
 
 class Registration : public QDialog
 {
     Q_OBJECT
+    QSqlDatabase _db;
+    Ui::Registration *ui;
+    void errorMes(const QString &mes);
 
 public:
     explicit Registration(QWidget *parent = nullptr);
+    void setDatabase(const QSqlDatabase &db);
     ~Registration();
 
 signals:
-    void RegistrationEnd();
+    void SuccesRegistration(QString login, QString passwd);
 
 private slots:
     void on_save_btn_clicked();
 
-private:
-    Ui::Registration *ui;
+    void on_cancel_btn_clicked();
 };
 
 #endif // AUTHORIZATION_H

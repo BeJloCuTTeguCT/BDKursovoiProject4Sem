@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>450</width>
-    <height>450</height>
+    <width>420</width>
+    <height>402</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -43,7 +43,7 @@
     </spacer>
    </item>
    <item row="8" column="1">
-    <widget class="QLineEdit" name="lineEdit_4">
+    <widget class="QLineEdit" name="login_ln">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -134,7 +134,7 @@
     </spacer>
    </item>
    <item row="5" column="2">
-    <widget class="QLineEdit" name="lineEdit_6">
+    <widget class="QLineEdit" name="birhday_ln">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -153,8 +153,11 @@
        <height>30</height>
       </size>
      </property>
+     <property name="inputMask">
+      <string>00-00-0000</string>
+     </property>
      <property name="text">
-      <string/>
+      <string>--</string>
      </property>
     </widget>
    </item>
@@ -251,6 +254,18 @@
    </item>
    <item row="10" column="1">
     <widget class="QPushButton" name="cancel_btn">
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>28</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>200</width>
+       <height>30</height>
+      </size>
+     </property>
      <property name="text">
       <string>Отмена</string>
      </property>
@@ -258,6 +273,18 @@
    </item>
    <item row="10" column="2">
     <widget class="QPushButton" name="save_btn">
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>28</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>200</width>
+       <height>30</height>
+      </size>
+     </property>
      <property name="text">
       <string>Зарегистрироваться</string>
      </property>
@@ -294,7 +321,7 @@
     </widget>
    </item>
    <item row="8" column="2">
-    <widget class="QLineEdit" name="lineEdit_5">
+    <widget class="QLineEdit" name="passwd_ln">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -354,9 +381,9 @@
   <tabstop>first_name</tabstop>
   <tabstop>last_name</tabstop>
   <tabstop>patromymic</tabstop>
-  <tabstop>lineEdit_6</tabstop>
-  <tabstop>lineEdit_4</tabstop>
-  <tabstop>lineEdit_5</tabstop>
+  <tabstop>birhday_ln</tabstop>
+  <tabstop>login_ln</tabstop>
+  <tabstop>passwd_ln</tabstop>
   <tabstop>save_btn</tabstop>
   <tabstop>cancel_btn</tabstop>
  </tabstops>

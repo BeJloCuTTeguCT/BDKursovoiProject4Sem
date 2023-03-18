@@ -3,7 +3,7 @@
 #include <QString>
 
 enum ConfigurateJson {
-    Host,
+     Host,
     Port,
     NameDB
 };
@@ -29,8 +29,9 @@ enum SearchType{
 };
 
 enum TypeEditRow {
+    AddingRow,
     EditingRow,
-    AddingRow
+    RemovindRow
 };
 
 enum UserRole {
@@ -43,19 +44,11 @@ enum AuthPair {
     Login,
     Password
 };
-struct TempTable {
 
-    const QString _BookName;
-    const QString _BookAuthor;
-    const QString _GenreName;
-    const int _BookPublishDate;
-    const int _BookCount;
-    const int _BookID;
-    const int _GenreID;
-    TempTable(QString BookName, QString BookAuthor, QString GenreName, int BookPublishDate,
-            int BookCount, int BookID, int GenreID) :
-        _BookName(BookName), _BookAuthor(BookAuthor), _GenreName(GenreName), _BookPublishDate(BookPublishDate),
-        _BookCount(BookCount), _BookID(BookID), _GenreID(GenreID) {};
+enum TypeEditGenre {
+    CreateGenre,
+    EditingGenre,
+    RemoveGenre
 };
 
 #endif // MYENUMS_H

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>557</width>
-    <height>349</height>
+    <width>524</width>
+    <height>146</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,7 +57,7 @@
       <string notr="true"/>
      </property>
      <property name="currentText">
-      <string>Совпадение</string>
+      <string>Точно</string>
      </property>
      <item>
       <property name="text">

@@ -37,7 +37,9 @@ FORMS += \
     Forms/setconnectdb.ui \
     Forms/simple_search.ui \
     Forms/widget.ui \
-    Forms/registration.ui
+    Forms/registration.ui \
+    Forms/edit_genre.ui \
+    Forms/rm_book.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

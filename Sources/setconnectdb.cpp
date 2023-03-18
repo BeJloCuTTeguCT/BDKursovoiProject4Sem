@@ -13,7 +13,7 @@ SetConnectDB::SetConnectDB(QWidget *parent) :
 }
 
 SetConnectDB::SetConnectDB(QList<QString> present, QWidget *parent) :
-    QDialog(parent), _port(present[ConfigurateJson::Port]), _host(present[ConfigurateJson::Host]),
+     QDialog(parent), _port(present[ConfigurateJson::Port]), _host(present[ConfigurateJson::Host]),
   _DB_name(present[ConfigurateJson::NameDB]), _login(present[AuthPair::Login + 3]),
   _passwd(present[AuthPair::Password + 3]), ui(new Ui::SetConnectDB)
 {

@@ -1,4 +1,4 @@
-#include "mfiltermodel.h"
+ #include "mfiltermodel.h"
 #include <iostream>
 
 SearchColumnProp::SearchColumnProp (const QString &value, ColumnName column, Accuracy accuracy):
