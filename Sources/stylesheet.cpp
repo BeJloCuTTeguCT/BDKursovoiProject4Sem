@@ -15,9 +15,6 @@ QString StyleSheet::getStyleForCancelBtn()
 {
     return "QPushButton {"
            "    min-height: 28px;"
-           "    max-height: 30px;"
-           "    min-width: 100px;"
-           "    max-width: 200px;"
            "    background-color: rgb(225, 225, 225);"
            "    border-radius: 14px;"
            "}";
@@ -46,22 +43,6 @@ QString StyleSheet::getStyleForErrorLineEdit()
            "    padding-left: 5px;"
            "}";
 }
-
-//QString StyleSheet::getStyleForMenuBar()
-//{
-//    return "QMenuBar {"
-//           "    color: rgb(255, 255, 255);"
-//           "    background-color: rgb(86, 185, 209);"
-//           "}";
-//}
-
-//QString StyleSheet::getStyleForMenu()
-//{
-//    return "QMenu {"
-//           "    color: rgb(245, 245, 245);"
-//           "    background-color: rgb(31, 143, 171);"
-//           "}";
-//}
 
 QString StyleSheet::getStyleForSearchLine()
 {

@@ -17,7 +17,8 @@ SOURCES += \
     Sources/setconnectdb.cpp \
     Sources/stylesheet.cpp \
     Sources/widget.cpp \
-    Sources/filerw.cpp
+    Sources/filerw.cpp \
+    Sources/accountsetting.cpp
 
 HEADERS += \
     Include/authorization.h \
@@ -28,7 +29,8 @@ HEADERS += \
     Include/setconnectdb.h \
     Include/stylesheet.h \
     Include/widget.h \
-    Include/filerw.h
+    Include/filerw.h \
+    Include/accountsetting.h
 
 FORMS += \
     Forms/authorization.ui \
@@ -39,7 +41,8 @@ FORMS += \
     Forms/widget.ui \
     Forms/registration.ui \
     Forms/edit_genre.ui \
-    Forms/rm_book.ui
+    Forms/rm_book.ui \
+    Forms/accountsetting.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

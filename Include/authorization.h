@@ -24,15 +24,22 @@ public:
     ~Authorization();
     void authorization(const QString &login, const QString &password);
     void setConfigDB(const QStringList &config);
+    void getLastUserRole(const QStringList authPair);
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 signals:
-    void succes_authoriz(UserRole role, QString login);
+    void succes_authoriz(UserRole role, QStringList authPair);
+    void closed();
 
 private slots:
     void on_login_pb_clicked();
     void on_registration_btn_clicked();
     void pullFields(QString login, QString passwd);
+
+    // QWidget interface
+
 };
 
 class Registration : public QDialog

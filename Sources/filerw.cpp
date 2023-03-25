@@ -4,10 +4,11 @@
 
 void FileRW::errorRead()
 {
-    QMessageBox msg(QMessageBox::Icon::Critical, "Ошибка конфигурации",
+    QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Critical, "Ошибка конфигурации",
                    "Ошибка при открытии конфигурационного\nфайла с параметрами соединения с БД",
                    QMessageBox::Ok, _parent, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-    msg.show();
+    msg->setAttribute(Qt::WA_DeleteOnClose);
+    msg->show();
 }
 
 FileRW::FileRW(const QString &pathFile, QWidget *parent) :
@@ -22,6 +23,7 @@ void FileRW::readFile()
     this->_admin.clear();
     this->_user.clear();
     this->_guest.clear();
+    this->_lastUser.clear();
 
     QFile file(_pathFile);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
@@ -34,7 +36,6 @@ void FileRW::readFile()
     QByteArray temp = val.toUtf8();
     QJsonParseError jsonErr;
     QJsonDocument JDoc(QJsonDocument::fromJson(temp, &jsonErr));
-    qDebug() << jsonErr.errorString();
     if(JDoc.isEmpty()) {
         errorRead();
         return;
@@ -51,6 +52,8 @@ void FileRW::readFile()
     this->_user.push_back(jObj.value("UserAuthPair").toObject().value("password").toString());
     this->_guest.push_back(jObj.value("GuestAuthPair").toObject().value("login").toString());
     this->_guest.push_back(jObj.value("GuestAuthPair").toObject().value("password").toString());
+    this->_lastUser.push_back(jObj.value("LastAuthPair").toObject().value("login").toString());
+    this->_lastUser.push_back(jObj.value("LastAuthPair").toObject().value("password").toString());
 }
 
 void FileRW::writeFile()
@@ -74,6 +77,10 @@ void FileRW::writeFile()
     jObj_t->insert("login", _guest.value(0));
     jObj_t->insert("password", _guest.value(1));
     jObj.insert("GuestAuthPair", *jObj_t);
+    delete jObj_t; jObj_t = new QJsonObject;
+    jObj_t->insert("login", _lastUser.value(0));
+    jObj_t->insert("password", _lastUser.value(1));
+    jObj.insert("LastAuthPair", *jObj_t);
     delete jObj_t;
 
     QJsonDocument JDoc;
@@ -95,6 +102,9 @@ QStringList FileRW::getAuthPair(UserRole role)
         break;
     case UserRole::User:
         return _user;
+        break;
+    case UserRole::Last:
+        return _lastUser;
         break;
     default:
         return _guest;
@@ -137,6 +147,11 @@ void FileRW::setAuthPair(UserRole role, const QStringList &pair)
         _user.clear();
         _user.append(pair.value(0));
         _user.append(pair.value(1));
+        break;
+    case UserRole::Last:
+        _lastUser.clear();
+        _lastUser.append(pair.value(0));
+        _lastUser.append(pair.value(1));
         break;
     default:
         _guest.clear();

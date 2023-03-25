@@ -3,15 +3,6 @@
 #include "myenums.h"
 #include "stylesheet.h"
 
-SetConnectDB::SetConnectDB(QWidget *parent) :
-    QDialog(parent), ui(new Ui::SetConnectDB)
-{
-    ui->setupUi(this);
-    this->setStyleSheet(StyleSheet::getStyleForEditLine());
-    ui->save_btn->setStyleSheet(StyleSheet::getStyleForSaveBtn());
-    ui->cancel_btn->setStyleSheet(StyleSheet::getStyleForCancelBtn());
-}
-
 SetConnectDB::SetConnectDB(QList<QString> present, QWidget *parent) :
      QDialog(parent), _port(present[ConfigurateJson::Port]), _host(present[ConfigurateJson::Host]),
   _DB_name(present[ConfigurateJson::NameDB]), _login(present[AuthPair::Login + 3]),
@@ -26,6 +17,7 @@ SetConnectDB::SetConnectDB(QList<QString> present, QWidget *parent) :
     this->setStyleSheet(StyleSheet::getStyleForEditLine());
     ui->save_btn->setStyleSheet(StyleSheet::getStyleForSaveBtn());
     ui->cancel_btn->setStyleSheet(StyleSheet::getStyleForCancelBtn());
+    this->setWindowTitle("Настройки подключения к БД");
 }
 
 SetConnectDB::~SetConnectDB()
@@ -58,6 +50,12 @@ QString SetConnectDB::get_passwd()
     return this->_passwd;
 }
 
+void SetConnectDB::closeEvent(QCloseEvent *event)
+{
+    Q_UNUSED(event);
+    emit closed_window();
+}
+
 void SetConnectDB::on_save_btn_clicked()
 {
     this->_host = this->ui->host_ln->text();
@@ -73,5 +71,6 @@ void SetConnectDB::on_save_btn_clicked()
 void SetConnectDB::on_cancel_btn_clicked()
 {
     this->close();
+    emit closed_window();
 }
 

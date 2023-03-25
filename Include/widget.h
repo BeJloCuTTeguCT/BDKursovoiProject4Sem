@@ -16,6 +16,7 @@
 #include "search.h"
 #include "setconnectdb.h"
 #include "editrow.h"
+#include "accountsetting.h"
 #include "filerw.h"
 
 QT_BEGIN_NAMESPACE
@@ -39,6 +40,7 @@ class Widget : public QWidget
     QMenu *_menuAdmin;
     QMenu *_menuPersAcc;
     QAction * _authMN;
+    QAction *_updTable;
     QAction *_editMod;
     QAction *_takenBook;
     QAction *_returnBook;
@@ -58,28 +60,32 @@ class Widget : public QWidget
     EditGenre *_editGenre;
 
     SetConnectDB *_setConDb;
+    AccountSetting *_accSet;
     QMessageBox *_set_auth_msg;
 
     void load_table();
+    void MesNoFind();
 
 public:
     explicit Widget(QWidget *parent = nullptr);
     ~Widget();
 
 public slots:
-    void succes_auth(UserRole role, QString login);
+    void succes_auth(UserRole role, QStringList authPair);
     void set_connect_apply();
     void set_auth(QAbstractButton *btn);
     void querry_simple_search(Accuracy accuracy, QString name);
     void querry_search();
 
     //connectors slots
-    void authorization();
+    void authorization(bool reauth = false);
     void update_table();
     void on_clicked_menu_takenBook();
     void on_clicked_menu_returnBook();
     void on_clicked_menu_personSetting();
+    void on_clicked_menu_logout();
     void on_clicked_menu_createGenre();
+    void on_clicked_menu_editGenre();
     void on_clicked_menu_removeRow();
     void removeGenre();
     void set_connect();

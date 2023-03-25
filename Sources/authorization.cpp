@@ -13,6 +13,7 @@ void Authorization::errorMes()
     QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Warning, "Ошибка авторизации",
             "Неправильный логин или пароль!",
             QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+    msg->setAttribute(Qt::WA_DeleteOnClose);
     msg->show();
 }
 
@@ -38,6 +39,7 @@ void Authorization::authorization(const QString &login, const QString &password)
     if (!_db.open()) {
         QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Critical, "Ошибка подключения", _db.lastError().databaseText(),
                                         QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+        msg->setAttribute(Qt::WA_DeleteOnClose);
         msg->show();
         return;
     }
@@ -49,8 +51,19 @@ void Authorization::setConfigDB(const QStringList &config)
     _db.setHostName(config.value(ConfigurateJson::Host));
     _db.setPort(config.value(ConfigurateJson::Port).toInt());
     _db.setDatabaseName(config.value(ConfigurateJson::NameDB));
+}
 
+void Authorization::getLastUserRole(const QStringList authPair)
+{
+    ui->login_ln->setText(authPair.value(AuthPair::Login));
+    ui->password->setText(authPair.value(AuthPair::Password));
+    emit on_login_pb_clicked();
+}
 
+void Authorization::closeEvent(QCloseEvent *event)
+{
+    Q_UNUSED(event);
+    emit closed();
 }
 
 void Authorization::on_login_pb_clicked()
@@ -74,7 +87,7 @@ void Authorization::on_login_pb_clicked()
         if(response.value(1).toString() == "guest")
             role = Guest;
         this->setCursor(Qt::ArrowCursor);
-        emit succes_authoriz(role, ui->login_ln->text());
+        emit succes_authoriz(role, QStringList() << ui->login_ln->text() << ui->password->text());
         return;
     }
     else
@@ -111,6 +124,7 @@ void Registration::errorMes(const QString &mes)
 {
     QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Warning, "Ошибка при регистрации", mes,
             QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+    msg->setAttribute(Qt::WA_DeleteOnClose);
     msg->show();
 }
 

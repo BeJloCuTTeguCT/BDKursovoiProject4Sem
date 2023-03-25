@@ -37,7 +37,8 @@ enum TypeEditRow {
 enum UserRole {
     Admin,
     User,
-    Guest
+    Guest,
+    Last
 };
 
 enum AuthPair {

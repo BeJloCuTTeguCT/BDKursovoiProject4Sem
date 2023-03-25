@@ -32,6 +32,9 @@ public:
     void setGenreList(QAbstractItemModel *model);
     ~EditRow();
 
+signals:
+    void closed_window();
+
 private slots:
     void on_cancel_btn_clicked();
     void on_save_btn_clicked();
@@ -52,7 +55,7 @@ public:
     void setGenreList(QSqlTableModel *model);
 
 signals:
-    void endEditing();
+    void closed_window();
 
 public slots:
     void on_cancel_btn_clicked();

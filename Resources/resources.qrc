@@ -1,11 +1,8 @@
 <RCC>
     <qresource prefix="/icons">
         <file alias="combobox">combobox.ico</file>
-        <file alias="close">close.ico</file>
-        <file alias="expand">expand.ico</file>
-        <file alias="wrap">wrap.png</file>
         <file alias="ico_title">rsl-logo.png</file>
         <file alias="update">update.png</file>
+        <file alias="s_back">start_background.png</file>
     </qresource>
-    <qresource prefix="/a"/>
 </RCC>

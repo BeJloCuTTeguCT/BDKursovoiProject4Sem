@@ -15,6 +15,7 @@ class FileRW
     QStringList _admin;
     QStringList _user;
     QStringList _guest;
+    QStringList _lastUser;
     QWidget *_parent;
 
     void errorRead();

@@ -5,7 +5,6 @@
 #include "stylesheet.h"
 #include <QSqlQuery>
 #include <QSqlError>
-#include <QDebug>
 #include <QMessageBox>
 #include <QSqlIndex>
 
@@ -17,6 +16,7 @@ void EditRow::saveQuery(const QString &query)
         QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Warning, "Ошибка сохранения",
                 "При отправке запроса для обновления\nданных произошла ошибка.",
                 QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+        msg->setAttribute(Qt::WA_DeleteOnClose);
         msg->show();
         _mapper->revert();
         return;
@@ -36,7 +36,7 @@ EditRow::EditRow(TypeEditRow type, QWidget *parent) :
         ui->cancel_btn->setStyleSheet(StyleSheet::getStyleForCancelBtn());
         ui->save_btn->setText("Добавить");
         ui->title_lb->setText("Добаление книги");
-        this->setWindowTitle("Добаление книги и ее данных");
+        this->setWindowTitle("Добаление книги");
         break;
     case TypeEditRow::EditingRow:
         ui->setupUi(this);
@@ -109,6 +109,7 @@ EditRow::~EditRow()
 void EditRow::on_cancel_btn_clicked()
 {
     this->close();
+    emit closed_window();
 }
 
 void EditRow::on_save_btn_clicked()
@@ -132,6 +133,7 @@ void EditRow::on_save_btn_clicked()
         break;
     }
     this->close();
+    emit closed_window();
 }
 
 
@@ -146,13 +148,18 @@ EditGenre::EditGenre(TypeEditGenre type, QWidget *parent) :
     QDialog(parent), ui(new Ui::EditGenre), _type(type)
 {
     ui->setupUi(this);
-    if (type == TypeEditGenre::CreateGenre) {
+    switch (type) {
+    case TypeEditGenre::CreateGenre:
         ui->genre_cb->setHidden(true);
         ui->save_btn->setText("Создать");
-    }
-    if (type == TypeEditGenre::RemoveGenre) {
+        break;
+    case TypeEditGenre::EditingGenre:
+        ui->save_btn->setText("Изменить");
+        break;
+    case TypeEditGenre::RemoveGenre:
         ui->genre_le->setHidden(true);
         ui->save_btn->setText("Удалить");
+        break;
     }
     ui->genre_le->setStyleSheet(StyleSheet::getStyleForEditLine());
     ui->genre_cb->setStyleSheet(StyleSheet::getStyleForComboBox());
@@ -178,6 +185,7 @@ void EditGenre::on_cancel_btn_clicked()
 {
     _tableModel->revertAll();
     this->close();
+    emit closed_window();
 }
 
 void EditGenre::on_save_btn_clicked()
@@ -189,7 +197,7 @@ void EditGenre::on_save_btn_clicked()
         _tableModel->submitAll();
         break;
     case EditingGenre:
-        _tableModel->setData(_tableModel->index(_tableModel->rowCount()-1, 1), QVariant(ui->genre_le->text()));
+        _tableModel->setData(_tableModel->index(ui->genre_cb->currentIndex(), 1), QVariant(ui->genre_le->text()));
         _tableModel->submitAll();
         break;
     case RemoveGenre:
@@ -201,10 +209,13 @@ void EditGenre::on_save_btn_clicked()
                     "Вы попытались удалить жанр,\nк которому привязана(-ы) книга(-и)!\n"
                     "Сначала удалите все книги,\nотносящиеся к этому жанру",
                     QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+            msg->setAttribute(Qt::WA_DeleteOnClose);
             msg->show();
             _tableModel->revertAll();
+            return;
         }
         break;
     }
     this->close();
+    emit closed_window();
 }
