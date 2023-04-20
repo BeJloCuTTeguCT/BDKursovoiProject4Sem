@@ -1,0 +1,24 @@
+{
+    "AdminAuthPair": {
+        "login": "login",
+        "password": "password"
+    },
+    "BootAuthState": "false",
+    "ConfigDB": {
+        "host": "127.0.0.1",
+        "nameDB": "nameDB",
+        "port": "port"
+    },
+    "GuestAuthPair": {
+        "login": "login",
+        "password": "password"
+    },
+    "LastAuthPair": {
+        "login": "login",
+        "password": "password"
+    },
+    "UserAuthPair": {
+        "login": "login",
+        "password": "password"
+    }
+}
