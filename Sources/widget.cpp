@@ -2,11 +2,9 @@
 #include "ui_widget.h"
 #include "mfiltermodel.h"
 #include "accountsetting.h"
-#include <QPixmap>
-#include <QMessageBox>
-#include <QHeaderView>
-#include <QFile>
-#include <QByteArray>
+#include <qpushbutton.h>
+#include <qsqlerror.h>
+
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent), ui(new Ui::Widget), _menubar(new QMenuBar(this)), auth(nullptr),
@@ -66,6 +64,7 @@ Widget::Widget(QWidget *parent)
     _menuAdmin->setEnabled(false);
     ui->tableView->setHidden(true);
 
+    connect(ui->tableView, &QTableView::doubleClicked, this, &Widget::on_doubleClicked_tableView);
     connect(_authMN, &QAction::triggered, this, &Widget::authorization);
     connect(_updTable, &QAction::triggered, this, &Widget::update_table);
     connect(_takenBook, &QAction::triggered, this, &Widget::on_clicked_menu_takenBook);
@@ -79,6 +78,9 @@ Widget::Widget(QWidget *parent)
     connect(connectBD, &QAction::triggered, this, &Widget::set_connect);
     connect(authSetting, &QAction::triggered, this, &Widget::set_auth_message);
     connect(addRow, &QAction::triggered, this, &Widget::addRow);
+    connect(_editMod, &QAction::triggered, this, [this] () {if(ui->tableView->isHidden()){
+                                                            ui->tableView->setHidden(false);
+                                                            ui->start_image->setHidden(true);}});
 
     this->authorization();
 }
@@ -112,6 +114,8 @@ void Widget::succes_auth(UserRole role, QStringList authPair)
     _userRole = role;
     _userLogin = authPair.value(AuthPair::Login);
     _FJson->setAuthPair(UserRole::Last, authPair);
+    if (_FJson->getBootAuthState() == "false")
+        _FJson->writeFile();
     if(auth != nullptr)
         delete auth;
     _succes_auth = true;
@@ -217,7 +221,7 @@ void Widget::load_table()
     _model_sort->setSourceModel(_model);
     ui->tableView->setModel(_model_sort);
     ui->tableView->setColumnHidden(ColumnName::BookID, true);
-    ui->tableView->setColumnHidden(ColumnName::GenreID, true);
+    ui->tableView->horizontalHeader()->stretchLastSection();
     ui->tableView->resizeColumnsToContents();
     ui->tableView->setSortingEnabled(true);
 
@@ -256,10 +260,13 @@ void Widget::on_clicked_menu_takenBook()
 {
     if (!_takenBook->isChecked()) {
         ui->tableView->setModel(_model_sort);
+        ui->tableView->setColumnHidden(ColumnName::BookID, true);
         return;
     }
-    if (_returnBook->isChecked())
+    if (_returnBook->isChecked()) {
         _returnBook->setChecked(false);
+        ui->tableView->setColumnHidden(ColumnName::BookID, true);
+    }
 
     QString query = QString("select * from print_taken_books_by_user_login('%1')").arg(_userLogin);
     QSqlQueryModel *takeBookModel = new QSqlQueryModel(this);
@@ -271,7 +278,6 @@ void Widget::on_clicked_menu_takenBook()
     QSortFilterProxyModel *model = new QSortFilterProxyModel(this);
     model->setSourceModel(takeBookModel);
     ui->tableView->setModel(model);
-    ui->tableView->resizeColumnsToContents();
     if(ui->tableView->isHidden()){
         ui->tableView->setHidden(false);
         ui->start_image->setHidden(true);
@@ -282,10 +288,13 @@ void Widget::on_clicked_menu_returnBook()
 {
     if (!_returnBook->isChecked()) {
         ui->tableView->setModel(_model_sort);
+        ui->tableView->setColumnHidden(ColumnName::BookID, true);
         return;
     }
-    if (_takenBook->isChecked())
+    if (_takenBook->isChecked()) {
         _takenBook->setChecked(false);
+        ui->tableView->setColumnHidden(ColumnName::BookID, true);
+    }
 
     QString query = QString("select * from print_retuns_books_by_user_login('%1')").arg(_userLogin);
     QSqlQueryModel *returnBookModel = new QSqlQueryModel(this);
@@ -298,7 +307,6 @@ void Widget::on_clicked_menu_returnBook()
     QSortFilterProxyModel *model = new QSortFilterProxyModel(this);
     model->setSourceModel(returnBookModel);
     ui->tableView->setModel(model);
-    ui->tableView->resizeColumnsToContents();
     if(ui->tableView->isHidden()){
         ui->tableView->setHidden(false);
         ui->start_image->setHidden(true);
@@ -421,7 +429,7 @@ void Widget::addRow()
     connect(_editRow, &EditRow::closed_window, this, [this] () {delete _editRow;});
 }
 
-void Widget::on_tableView_doubleClicked(const QModelIndex &index)
+void Widget::on_doubleClicked_tableView(const QModelIndex &index)
 {
     if(!_editMod->isChecked() || _takenBook->isChecked() || _returnBook->isChecked())
         return; //обработка режима редактирования и просмотра других табилиц
@@ -457,8 +465,9 @@ void Widget::on_clicked_menu_removeRow()
 
     _editRow = new EditRow(TypeEditRow::RemovindRow, this);
     _editRow->setModel(ui->tableView->model());
+    _editRow->setCurentModelIndex(ui->tableView->currentIndex());
     _editRow->setSave(&db);
     _editRow->show();
-    connect(_editRow, &EditRow::closed_window, this, [this] () {delete _editRow;});
+    connect(_editRow, &EditRow::closed_window, this, [this] () {delete _editRow; this->update_table();});
 }
 

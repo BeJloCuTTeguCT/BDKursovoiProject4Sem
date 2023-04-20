@@ -1,7 +1,7 @@
 #ifndef SETCONNECTDB_H
 #define SETCONNECTDB_H
 
-#include <QDialog>
+#include <qdialog.h>
 
 namespace Ui {
 class SetConnectDB;

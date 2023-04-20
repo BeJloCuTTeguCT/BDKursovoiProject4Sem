@@ -1,10 +1,7 @@
- #ifndef FILERW_H
+#ifndef FILERW_H
 #define FILERW_H
 
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QFile>
+#include <qfile.h>
 #include "myenums.h"
 
 class FileRW

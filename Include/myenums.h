@@ -1,6 +1,5 @@
 #ifndef MYENUMS_H
 #define MYENUMS_H
-#include <QString>
 
 enum ConfigurateJson {
      Host,
@@ -14,8 +13,7 @@ enum ColumnName {
     GenreName,
     BookPublishDate,
     BookCount,
-    BookID,
-    GenreID
+    BookID
 };
 
 enum Accuracy {

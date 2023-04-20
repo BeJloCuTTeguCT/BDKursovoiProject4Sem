@@ -1,17 +1,11 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include <QWidget>
-#include <QMenuBar>
-#include <QMenu>
-#include <QPushButton>
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlRecord>
-#include <QSqlTableModel>
+#include <qwidget.h>
+#include <qmenubar.h>
+#include <qsqltablemodel.h>
 #include <qsortfilterproxymodel.h>
-#include <QSqlError>
-#include <QMessageBox>
+#include <qmessagebox.h>
 #include "authorization.h"
 #include "search.h"
 #include "setconnectdb.h"
@@ -78,6 +72,7 @@ public slots:
     void querry_search();
 
     //connectors slots
+    void on_doubleClicked_tableView(const QModelIndex &index);
     void authorization(bool reauth = false);
     void update_table();
     void on_clicked_menu_takenBook();
@@ -91,8 +86,5 @@ public slots:
     void set_connect();
     void set_auth_message();
     void addRow();
-
-private slots:
-    void on_tableView_doubleClicked(const QModelIndex &index);
 };
 #endif // WIDGET_H

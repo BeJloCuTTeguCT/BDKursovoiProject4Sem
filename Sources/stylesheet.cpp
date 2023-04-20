@@ -1,7 +1,5 @@
  #include "stylesheet.h"
 
-
-
 QString StyleSheet::getStyleForSaveBtn()
 {
     return "QPushButton {"

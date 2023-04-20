@@ -1,6 +1,6 @@
- #include "search.h"
 #include "ui_search.h"
 #include "ui_simple_search.h"
+#include "search.h"
 #include "stylesheet.h"
 
 Search::Search(SearchType type_search) :
@@ -69,7 +69,6 @@ void Search::on_search_btn_clicked()
     emit this->init_search();
 }
 
-
 void Search::on_simple_search_btn_clicked()
 {
     int type_name = simple_search->name_cb->currentIndex();
@@ -79,4 +78,3 @@ void Search::on_simple_search_btn_clicked()
     if(type_name == 1)
         emit this->init_simple_search(Accuracy::Contains, name);
 }
-

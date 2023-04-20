@@ -1,9 +1,9 @@
 #ifndef AUTHORIZATION_H
 #define AUTHORIZATION_H
 
-#include <QSqlDatabase>
-#include <QDialog>
 #include "myenums.h"
+#include <qdialog.h>
+#include <qsqldatabase.h>
 
 namespace Ui {
 class Authorization;

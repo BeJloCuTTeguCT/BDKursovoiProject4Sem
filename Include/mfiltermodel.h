@@ -1,10 +1,8 @@
  #ifndef MFILTERMODEL_H
 #define MFILTERMODEL_H
 
-#include <QSortFilterProxyModel>
 #include "myenums.h"
-
-
+#include <qsortfilterproxymodel.h>
 
 struct SearchColumnProp {
     QString _value;
@@ -14,7 +12,6 @@ struct SearchColumnProp {
                 ColumnName column,
                      Accuracy accuracy = Accuracy::Contains);
 };
-
 
 class MFilterModel : public QSortFilterProxyModel
 {

@@ -1,16 +1,14 @@
  #ifndef SEARCH_H
 #define SEARCH_H
 
-#include <QWidget>
-#include <QSqlTableModel>
+#include <qwidget.h>
+#include <qsqltablemodel.h>
 #include "myenums.h"
 
 namespace Ui {
 class Search;
 class Simple_Search;
 }
-
-
 
 class Search : public QWidget
 {

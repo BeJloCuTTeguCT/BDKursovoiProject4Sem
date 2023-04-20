@@ -1,28 +1,34 @@
- #include "editrow.h"
 #include "ui_editrow.h"
 #include "ui_rm_book.h"
 #include "ui_edit_genre.h"
+#include "editrow.h"
 #include "stylesheet.h"
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QMessageBox>
-#include <QSqlIndex>
+#include <qsqlquery.h>
+#include <qsqlerror.h>
+#include <qsqlindex.h>
+#include <qmessagebox.h>
 
-void EditRow::saveQuery(const QString &query)
+void EditRow::showErrorMes(const QString &title, const QString &mes)
+{
+    QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Warning, title, mes,
+            QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+    msg->setAttribute(Qt::WA_DeleteOnClose);
+    msg->show();
+}
+
+bool EditRow::saveQuery(const QString &query)
 {
     _db->transaction();
     if(_db->exec(query).lastError().isValid()) {
         _db->rollback();
-        QMessageBox *msg = new QMessageBox(QMessageBox::Icon::Warning, "Ошибка сохранения",
-                "При отправке запроса для обновления\nданных произошла ошибка.",
-                QMessageBox::StandardButton::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-        msg->setAttribute(Qt::WA_DeleteOnClose);
-        msg->show();
+        showErrorMes("Ошибка сохранения","При отправке запроса для обновления\nданных произошла ошибка.\n"
+                                                                    "Или ошибка в заполнении данных\n");
         _mapper->revert();
-        return;
+        return false;
     }
     _db->commit();
     _mapper->submit();
+    return true;
 }
 
 EditRow::EditRow(TypeEditRow type, QWidget *parent) :
@@ -31,6 +37,8 @@ EditRow::EditRow(TypeEditRow type, QWidget *parent) :
     switch (type) {
     case TypeEditRow::AddingRow:
         ui->setupUi(this);
+        ui->pub_date_ln->setValidator(new QIntValidator(this));
+        ui->count_ln->setValidator(new QIntValidator(this));
         ui->genre_cb->setStyleSheet(StyleSheet::getStyleForComboBox());
         ui->save_btn->setStyleSheet(StyleSheet::getStyleForSaveBtn());
         ui->cancel_btn->setStyleSheet(StyleSheet::getStyleForCancelBtn());
@@ -40,6 +48,8 @@ EditRow::EditRow(TypeEditRow type, QWidget *parent) :
         break;
     case TypeEditRow::EditingRow:
         ui->setupUi(this);
+        ui->pub_date_ln->setValidator(new QIntValidator(this));
+        ui->count_ln->setValidator(new QIntValidator(this));
         ui->genre_cb->setStyleSheet(StyleSheet::getStyleForComboBox());
         ui->save_btn->setStyleSheet(StyleSheet::getStyleForSaveBtn());
         ui->cancel_btn->setStyleSheet(StyleSheet::getStyleForCancelBtn());
@@ -88,7 +98,10 @@ void EditRow::setSave(QSqlDatabase *db, QString bookID)
 
 void EditRow::setCurentModelIndex(const QModelIndex &index)
 {
-    _mapper->setCurrentModelIndex(index);
+    if (_type == RemovindRow)
+        rm_ui->names_cb->setCurrentIndex(index.row());
+    else
+        _mapper->setCurrentModelIndex(index);
 }
 
 void EditRow::setGenreList(QAbstractItemModel *model)
@@ -106,6 +119,12 @@ EditRow::~EditRow()
     delete ui;
 }
 
+void EditRow::closeEvent(QCloseEvent *event)
+{
+    Q_UNUSED(event);
+    emit closed_window();
+}
+
 void EditRow::on_cancel_btn_clicked()
 {
     this->close();
@@ -114,22 +133,59 @@ void EditRow::on_cancel_btn_clicked()
 
 void EditRow::on_save_btn_clicked()
 {
+    QStringList lines;
+    QString mes_err = "Ошибка в заполении данных:";
+    if (_type == EditingRow || _type == AddingRow) {
+        bool int7 = false;
+        if(ui->name_ln->text().isEmpty())
+            mes_err += QString("\nНазвание книги должно быть заполнено!");
+        else
+            lines.push_back(ui->name_ln->text());
+        if(ui->author_ln->text().isEmpty())
+            lines.push_back("NULL");
+        else
+            lines.push_back(ui->author_ln->text());
+        if(ui->pub_date_ln->text().isEmpty())
+            lines.push_back("NULL");
+        else {
+            ui->pub_date_ln->text().toInt(&int7, 10);
+            if(int7)
+                lines.push_back(ui->pub_date_ln->text());
+            else {
+                mes_err += QString("\nГод издания должен содержать только цифры!");
+            }
+        }
+        ui->count_ln->text().toInt(&int7, 10);
+        if(int7)
+            lines.push_back(ui->count_ln->text());
+        else {
+            mes_err += QString("\nКоличество книг должно быть указано и состоять из цифр!");
+        }
+        if (mes_err.size() > 26) {
+            showErrorMes("Ошибка ввода данных" ,mes_err);
+            return;
+        }
+    }
+
     QString query;
     switch (_type) {
     case AddingRow:
-        query = QString("call add_book('%1', '%2', '%3', %4, %5)").arg(ui->name_ln->text(), ui->author_ln->text(),
-                                    ui->genre_cb->currentText(), ui->pub_date_ln->text(), ui->count_ln->text());
-        this->saveQuery(query);
+        query = QString("call add_book('%1', '%2', '%3', %4, %5)").arg(lines.value(0), lines.value(1),
+                                    ui->genre_cb->currentText(), lines.value(2), lines.value(3));
+        if (!this->saveQuery(query))
+            return;
         break;
     case EditingRow:
-        query = QString("call set_full_info_of_book(%1, '%2', '%3', '%4', %5, %6)").arg(_bookID, ui->name_ln->text(),
-                                ui->author_ln->text(), ui->genre_cb->currentText(), ui->pub_date_ln->text(), ui->count_ln->text());
-        this->saveQuery(query);
+        query = QString("call set_full_info_of_book(%1, '%2', '%3', '%4', %5, %6)").arg(_bookID, lines.value(0),
+                                lines.value(1), ui->genre_cb->currentText(), lines.value(2), lines.value(3));
+        if (!this->saveQuery(query))
+            return;
         break;
     case RemovindRow:
         query = QString("delete from public.book where \"BookID\" = %1").arg(
                     rm_ui->names_cb->model()->data(rm_ui->names_cb->model()->index(rm_ui->names_cb->currentIndex(), ColumnName::BookID)).toString());
-        this->saveQuery(query);
+        if (!this->saveQuery(query))
+            return;
         break;
     }
     this->close();
@@ -152,21 +208,22 @@ EditGenre::EditGenre(TypeEditGenre type, QWidget *parent) :
     case TypeEditGenre::CreateGenre:
         ui->genre_cb->setHidden(true);
         ui->save_btn->setText("Создать");
+        this->setWindowTitle("Создание жанра");
         break;
     case TypeEditGenre::EditingGenre:
         ui->save_btn->setText("Изменить");
+        this->setWindowTitle("Редактирование жанра");
         break;
     case TypeEditGenre::RemoveGenre:
         ui->genre_le->setHidden(true);
         ui->save_btn->setText("Удалить");
+        this->setWindowTitle("Удаление жанра");
         break;
     }
     ui->genre_le->setStyleSheet(StyleSheet::getStyleForEditLine());
     ui->genre_cb->setStyleSheet(StyleSheet::getStyleForComboBox());
     ui->save_btn->setStyleSheet(StyleSheet::getStyleForSaveBtn());
     ui->cancel_btn->setStyleSheet(StyleSheet::getStyleForCancelBtn());
-
-    this->setWindowTitle("Редактирование жанра");
 }
 
 EditGenre::~EditGenre()
@@ -179,6 +236,12 @@ void EditGenre::setGenreList(QSqlTableModel *model)
     _tableModel = model;
     ui->genre_cb->setModel(model);
     ui->genre_cb->setModelColumn(1);
+}
+
+void EditGenre::closeEvent(QCloseEvent *event)
+{
+    Q_UNUSED(event);
+    emit closed_window();
 }
 
 void EditGenre::on_cancel_btn_clicked()

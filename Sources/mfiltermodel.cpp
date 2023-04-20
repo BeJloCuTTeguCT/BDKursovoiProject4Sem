@@ -1,5 +1,4 @@
  #include "mfiltermodel.h"
-#include <iostream>
 
 SearchColumnProp::SearchColumnProp (const QString &value, ColumnName column, Accuracy accuracy):
     _value(value), _column(column), _accuracy(accuracy) {}

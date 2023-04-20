@@ -1,6 +1,8 @@
  #include "filerw.h"
-#include <QMessageBox>
-#include <QtWidgets>
+#include <qjsondocument.h>
+#include <qjsonarray.h>
+#include <qjsonobject.h>
+#include <qmessagebox.h>
 
 void FileRW::errorRead()
 {

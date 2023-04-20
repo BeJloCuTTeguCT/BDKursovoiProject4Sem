@@ -1,12 +1,11 @@
-#include "authorization.h"
-#include "qsqlrecord.h"
 #include "ui_authorization.h"
 #include "ui_registration.h"
+#include "authorization.h"
+#include "qsqlrecord.h"
 #include "stylesheet.h"
-#include <QMessageBox>
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QSql>
+#include <qmessagebox.h>
+#include <qsqlquery.h>
+#include <qsqlerror.h>
 
 void Authorization::errorMes()
 {

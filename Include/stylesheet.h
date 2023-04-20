@@ -1,7 +1,7 @@
  #ifndef STYLESHEET_H
 #define STYLESHEET_H
 
-#include <QString>
+#include <qstring.h>
 
 class StyleSheet
 {
@@ -10,7 +10,6 @@ public:
     static QString getStyleForCancelBtn();
     static QString getStyleForSearchBtn();
     static QString getStyleForEditLine();
-//    static QString getStyleForMenuBar();
     static QString getStyleForErrorLineEdit();
     static QString getStyleForSearchLine();
     static QString getStyleForSearchComboBox();

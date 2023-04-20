@@ -1,10 +1,10 @@
  #ifndef EDITROW_H
 #define EDITROW_H
 
-#include <QDataWidgetMapper>
-#include <QSqlDatabase>
-#include <QSqlTableModel>
-#include <QDialog>
+#include <qdialog.h>
+#include <qdatawidgetmapper.h>
+#include <qsqldatabase.h>
+#include <qsqltablemodel.h>
 #include "myenums.h"
 
 namespace Ui {
@@ -22,7 +22,8 @@ class EditRow : public QDialog
     TypeEditRow _type;
     Ui::EditRow *ui;
     Ui::RmBook *rm_ui;
-    void saveQuery(const QString &query);
+    void showErrorMes(const QString &title, const QString &mes);
+    bool saveQuery(const QString &query);
 
 public:
     explicit EditRow(TypeEditRow type = TypeEditRow::EditingRow, QWidget *parent = nullptr);
@@ -31,6 +32,9 @@ public:
     void setCurentModelIndex(const QModelIndex &index);
     void setGenreList(QAbstractItemModel *model);
     ~EditRow();
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 signals:
     void closed_window();
@@ -53,6 +57,9 @@ public:
     explicit EditGenre(TypeEditGenre type, QWidget *parent = nullptr);
     ~EditGenre();
     void setGenreList(QSqlTableModel *model);
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 signals:
     void closed_window();

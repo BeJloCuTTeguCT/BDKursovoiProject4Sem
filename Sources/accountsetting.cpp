@@ -35,6 +35,9 @@ AccountSetting::AccountSetting(const QSqlDatabase &db, const QString &login, QWi
     ui->patronymic_lb->setText(response.value(2).toString());
     ui->bith_date_lb->setText(response.value(3).toDate().toString("dd MMMM yyyy"));
     ui->login_lb->setText(login);
+    ui->first_name_le->setText(ui->first_name_lb->text());
+    ui->last_name_le->setText(ui->last_name_lb->text());
+    ui->patronymic_le->setText(ui->patronymic_lb->text());
     this->setWindowTitle("Настройки аккаунта");
 }
 
